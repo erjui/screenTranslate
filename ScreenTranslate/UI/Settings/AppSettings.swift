@@ -232,6 +232,20 @@ final class AppSettings {
         }
     }
 
+    // MARK: - Pinyin (Chinese source)
+
+    var showPinyinForChinese: Bool {
+        get {
+            access(keyPath: \.showPinyinForChinese)
+            return UserDefaults.standard.object(forKey: "com.screentranslate.showPinyinForChinese") as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.showPinyinForChinese) {
+                UserDefaults.standard.set(newValue, forKey: "com.screentranslate.showPinyinForChinese")
+            }
+        }
+    }
+
     // MARK: - Advanced
 
     var ocrTextPreprocessing: Bool {

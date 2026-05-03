@@ -145,6 +145,11 @@ final class L10nTests: XCTestCase {
             ("ocrTextPreprocessing", L10n.ocrTextPreprocessing),
             ("ocrTextPreprocessingDesc", L10n.ocrTextPreprocessingDesc),
 
+            // Pinyin
+            ("pinyin", L10n.pinyin),
+            ("showPinyinForChinese", L10n.showPinyinForChinese),
+            ("showPinyinForChineseDesc", L10n.showPinyinForChineseDesc),
+
             // History
             ("translationHistory", L10n.translationHistory),
             ("deleteAll", L10n.deleteAll),

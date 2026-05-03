@@ -171,6 +171,15 @@ nonisolated enum L10n {
     static var ocrTextPreprocessing: String { s("Text Preprocessing", ko: "텍스트 전처리") }
     static var ocrTextPreprocessingDesc: String { s("Merge line breaks from OCR into natural sentences before translation.", ko: "번역 전 OCR 줄바꿈을 자연스러운 문장으로 병합합니다.") }
 
+    // MARK: - Pinyin
+
+    static var pinyin: String { s("Pinyin", ko: "병음") }
+    static var showPinyinForChinese: String { s("Show Pinyin (Chinese)", ko: "병음 표시 (중국어)") }
+    static var showPinyinForChineseDesc: String {
+        s("Display Hanyu Pinyin above the translation when the source is Chinese.",
+          ko: "원문이 중국어일 때 번역문 위에 한어병음을 표시합니다.")
+    }
+
     static func languagePackMessage(name: String) -> String {
         s("\(name) language pack is not installed.\nWould you like to download it now?",
           ko: "\(name) 언어팩이 설치되지 않았습니다.\n지금 다운로드할까요?")
