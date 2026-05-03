@@ -163,13 +163,28 @@ struct QuickTranslateView: View {
 
             case .completed(let result):
                 ScrollView {
-                    Text(result.translatedText)
-                        .font(popupFont)
-                        .foregroundStyle(.primary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityLabel(L10n.translatedText)
-                        .accessibilityValue(result.translatedText)
+                    VStack(alignment: .leading, spacing: 6) {
+                        if let pinyinText = pinyinIfApplicable(for: result) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L10n.pinyin)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                Text(pinyinText)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+
+                        Text(result.translatedText)
+                            .font(popupFont)
+                            .foregroundStyle(.primary)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityLabel(L10n.translatedText)
+                            .accessibilityValue(result.translatedText)
+                    }
                 }
 
             case .failed(let message):
@@ -298,6 +313,18 @@ struct QuickTranslateView: View {
             guard !Task.isCancelled else { return }
             didCopyResult = false
         }
+    }
+
+    /// 원문이 중국어이고 설정이 켜져 있으며 병음이 원문과 다를 때만 병음 문자열을 반환한다.
+    private func pinyinIfApplicable(
+        for result: TranslationCoordinator.TranslationResult
+    ) -> String? {
+        guard AppSettings.shared.showPinyinForChinese,
+              PinyinConverter.isChinese(result.sourceLanguage),
+              let py = PinyinConverter.pinyin(for: result.sourceText),
+              py != result.sourceText
+        else { return nil }
+        return py
     }
 
     /// NSPanel의 키 이벤트 콜백을 연결한다.
