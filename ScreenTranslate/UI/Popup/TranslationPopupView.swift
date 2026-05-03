@@ -128,6 +128,20 @@ struct TranslationPopupView: View {
                     .foregroundStyle(.orange)
             }
 
+            // 병음 (원문이 중국어일 때, 설정 활성화 시 번역문 위에 표시)
+            if let pinyinText = pinyinIfApplicable(for: result) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.pinyin)
+                        .font(popupFontSmall)
+                        .foregroundStyle(.tertiary)
+                    Text(pinyinText)
+                        .font(popupFontSmall)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
             // 번역문 — 짧은 텍스트는 자연 크기, 긴 텍스트만 스크롤
             ScrollView {
                 Text(result.translatedText)
@@ -170,6 +184,19 @@ struct TranslationPopupView: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
+    }
+
+    /// 원문이 중국어이고 설정이 켜져 있으며 병음이 원문과 다를 때만 병음 문자열을 반환한다.
+    /// auto-detect 실패(sourceLanguage == nil) 시에는 의도적으로 표시하지 않는다.
+    private func pinyinIfApplicable(
+        for result: TranslationCoordinator.TranslationResult
+    ) -> String? {
+        guard AppSettings.shared.showPinyinForChinese,
+              PinyinConverter.isChinese(result.sourceLanguage),
+              let py = PinyinConverter.pinyin(for: result.sourceText),
+              py != result.sourceText
+        else { return nil }
+        return py
     }
 
     private func errorView(message: String) -> some View {
