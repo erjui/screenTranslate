@@ -209,6 +209,19 @@ struct HistoryRowView: View {
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
+
+                // 병음 (원문이 중국어이고 설정 활성화 시)
+                if let pinyinText = pinyinIfApplicable(for: record) {
+                    Text(L10n.pinyin)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 2)
+                    Text(pinyinText)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding(.vertical, 4)
         }
@@ -236,5 +249,15 @@ struct HistoryRowView: View {
 
     private func languageName(for code: String) -> String {
         Locale.current.localizedString(forIdentifier: code) ?? code
+    }
+
+    /// 원문이 중국어이고 설정이 켜져 있으며 병음이 원문과 다를 때만 병음 문자열을 반환한다.
+    private func pinyinIfApplicable(for record: TranslationRecord) -> String? {
+        guard AppSettings.shared.showPinyinForChinese,
+              PinyinConverter.isChinese(languageCode: record.sourceLanguageCode),
+              let py = PinyinConverter.pinyin(for: record.sourceText),
+              py != record.sourceText
+        else { return nil }
+        return py
     }
 }
