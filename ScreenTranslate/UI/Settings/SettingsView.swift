@@ -565,6 +565,15 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                Toggle(isOn: $settings.showPinyinForChinese) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.showPinyinForChinese)
+                        Text(L10n.showPinyinForChineseDesc)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .formStyle(.grouped)
