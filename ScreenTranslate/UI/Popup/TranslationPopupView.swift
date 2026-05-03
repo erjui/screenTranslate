@@ -16,6 +16,7 @@ struct TranslationPopupView: View {
     private var popupFontSmall: Font { FontManager.shared.swiftUIFont(size: fontSize - 2) }
 
     @State private var didCopy = false
+    @State private var didCopyOriginal = false
     @State private var showingOriginal = false
 
     var body: some View {
@@ -49,6 +50,20 @@ struct TranslationPopupView: View {
 
                     Spacer()
 
+                    if case .completed(let result) = state, !result.sourceText.isEmpty {
+                        Button(didCopyOriginal ? L10n.copied : L10n.copyOriginal) {
+                            onCopy(result.sourceText)
+                            didCopyOriginal = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                didCopyOriginal = false
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .foregroundStyle(didCopyOriginal ? .green : .primary)
+                        .keyboardShortcut("c", modifiers: [.command, .shift])
+                        .accessibilityLabel(L10n.copyOriginal)
+                    }
+
                     if case .completed(let result) = state {
                         Button(didCopy ? L10n.copied : L10n.copy) {
                             onCopy(result.translatedText)
@@ -60,6 +75,7 @@ struct TranslationPopupView: View {
                         .buttonStyle(.borderedProminent)
                         .tint(didCopy ? .green : .accentColor)
                         .keyboardShortcut("c", modifiers: .command)
+                        .accessibilityLabel(L10n.copyTranslation)
                         .onChange(of: autoCopied) { _, newValue in
                             if newValue {
                                 didCopy = true
