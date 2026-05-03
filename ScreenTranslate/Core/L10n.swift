@@ -40,7 +40,7 @@ nonisolated enum L10n {
     static var quickTranslateShortcutHelp: String { s("Open a mini translation panel to type and translate text", ko: "텍스트를 입력하여 번역하는 미니 패널을 엽니다") }
     static var inputPlaceholder: String { s("Type text to translate...", ko: "번역할 텍스트를 입력하세요...") }
     static var resultPlaceholder: String { s("Translation will appear here", ko: "번역 결과가 여기에 표시됩니다") }
-    static var quickTranslateHint: String { s("ESC: close  ·  Enter: translate  ·  ⇧Enter: new line  ·  ⌘/: swap", ko: "ESC: 닫기  ·  Enter: 번역  ·  ⇧Enter: 줄바꿈  ·  ⌘/: 언어 전환") }
+    static var quickTranslateHint: String { s("ESC: close  ·  Enter: translate  ·  ⇧Enter: new line  ·  ⌘/: swap  ·  ⌘⌥C: copy original", ko: "ESC: 닫기  ·  Enter: 번역  ·  ⇧Enter: 줄바꿈  ·  ⌘/: 언어 전환  ·  ⌘⌥C: 원문 복사") }
     static var sourceLanguageSelect: String { s("Source language", ko: "소스 언어 선택") }
     static var targetLanguageSelect: String { s("Target language", ko: "번역 대상 언어 선택") }
     static var doubleCopyShortcut: String { s("⌘C+C", ko: "⌘C+C") }

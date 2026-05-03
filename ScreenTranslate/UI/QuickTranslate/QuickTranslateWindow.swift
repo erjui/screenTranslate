@@ -18,6 +18,9 @@ final class QuickTranslateWindow: NSPanel {
     /// Cmd+Shift+C 결과 복사 콜백 — SwiftUI 뷰에서 설정
     var onCopyResultAction: (() -> Void)?
 
+    /// Cmd+Option+C 원문 복사 콜백 — SwiftUI 뷰에서 설정
+    var onCopySourceAction: (() -> Void)?
+
     /// Cmd+/ 언어 스왑 콜백 — SwiftUI 뷰에서 설정
     var onSwapAction: (() -> Void)?
 
@@ -84,6 +87,7 @@ final class QuickTranslateWindow: NSPanel {
         contentView = nil
         onTranslateAction = nil
         onCopyResultAction = nil
+        onCopySourceAction = nil
         onSwapAction = nil
         DispatchQueue.main.async {
             NSApp.orderBackAuxiliaryWindows()
@@ -135,6 +139,13 @@ final class QuickTranslateWindow: NSPanel {
             if hasCmd && hasShift && !hasOption && !hasControl
                 && event.keyCode == 8 {
                 self.onCopyResultAction?()
+                return nil
+            }
+
+            // Cmd+Option+C → 원문 복사
+            if hasCmd && !hasShift && hasOption && !hasControl
+                && event.keyCode == 8 {
+                self.onCopySourceAction?()
                 return nil
             }
 

@@ -171,6 +171,21 @@ struct QuickTranslateView: View {
                         .accessibilityLabel(L10n.translatedText)
                         .accessibilityValue(result.translatedText)
                 }
+                .overlay(alignment: .topTrailing) {
+                    if !result.sourceText.isEmpty {
+                        Button {
+                            copySourceToClipboard()
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                        .help(L10n.copyOriginal)
+                        .accessibilityLabel(L10n.copyOriginal)
+                        .padding(.trailing, 2)
+                    }
+                }
 
             case .failed(let message):
                 VStack(spacing: 4) {
@@ -290,6 +305,20 @@ struct QuickTranslateView: View {
         }
     }
 
+    /// 원문(사용자가 입력한 텍스트)을 클립보드에 복사한다.
+    /// completed 상태에서는 result.sourceText, 그 외 상태에서는 현재 입력 텍스트를 복사한다.
+    private func copySourceToClipboard() {
+        let text: String
+        if case .completed(let result) = coordinator.state, !result.sourceText.isEmpty {
+            text = result.sourceText
+        } else {
+            text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !text.isEmpty else { return }
+        Clipboard.copy(text)
+        showCopyFeedback()
+    }
+
     private func showCopyFeedback() {
         copyFeedbackTask?.cancel()
         didCopyResult = true
@@ -307,6 +336,7 @@ struct QuickTranslateView: View {
         guard let panel = NSApp.keyWindow as? QuickTranslateWindow else { return }
         panel.onTranslateAction = { [self] in translateText() }
         panel.onCopyResultAction = { [self] in copyResultToClipboard() }
+        panel.onCopySourceAction = { [self] in copySourceToClipboard() }
         panel.onSwapAction = { [self] in swapLanguages() }
     }
 }
