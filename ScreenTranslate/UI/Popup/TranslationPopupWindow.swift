@@ -62,8 +62,10 @@ final class TranslationPopupWindow: NSPanel {
     private let vStackSpacing: CGFloat = 24         // VStack spacing(12+8) + 여유(4)
     private let contentOverhead: CGFloat = 84       // contentPaddingTotal + buttonRowHeight + vStackSpacing
     private let originalTextHeader: CGFloat = 30    // 원문 헤더 + 구분선
+    private let pinyinHeader: CGFloat = 22          // 병음 헤더 ("Pinyin" 라벨 + spacing)
     private let maxTranslatedHeight: CGFloat = 300  // 번역문 최대 높이 (fontScale 적용 전)
     private let maxOriginalHeight: CGFloat = 200    // 원문 최대 높이 (fontScale 적용 전)
+    private let maxPinyinHeight: CGFloat = 120      // 병음 최대 높이 (fontScale 적용 전)
     private let maxTotalHeight: CGFloat = 600       // 팝업 전체 최대 높이
 
     /// Wrapper container — NSHostingView와 ResizeGripView를 분리
@@ -309,6 +311,12 @@ final class TranslationPopupWindow: NSPanel {
             let translatedHeight = measureTextHeight(result.translatedText, width: baseWidth)
             var contentHeight = min(translatedHeight, maxTranslatedHeight * fontScale) + contentOverhead
 
+            // 병음 블록(원문이 중국어이고 설정 활성화 시) 추가
+            if let pinyinText = pinyinTextIfApplicable(for: result) {
+                let pinyinHeight = measureTextHeight(pinyinText, width: baseWidth)
+                contentHeight += min(pinyinHeight, maxPinyinHeight * fontScale) + pinyinHeader
+            }
+
             if showingOriginal {
                 let sourceHeight = measureTextHeight(result.sourceText, width: baseWidth)
                 contentHeight += min(sourceHeight, maxOriginalHeight * fontScale) + originalTextHeader
@@ -322,6 +330,19 @@ final class TranslationPopupWindow: NSPanel {
                 : 180 * fontScale
             return NSSize(width: baseWidth, height: height)
         }
+    }
+
+    /// 뷰의 표시 조건과 동일하게 병음 표시 가능 여부를 판단한다.
+    /// 측정 시점과 렌더 시점에서 같은 조건을 사용해야 크기 불일치가 없다.
+    private func pinyinTextIfApplicable(
+        for result: TranslationCoordinator.TranslationResult
+    ) -> String? {
+        guard AppSettings.shared.showPinyinForChinese,
+              PinyinConverter.isChinese(result.sourceLanguage),
+              let py = PinyinConverter.pinyin(for: result.sourceText),
+              py != result.sourceText
+        else { return nil }
+        return py
     }
 
     /// NSAttributedString 기반 텍스트 높이 측정 — 폰트 메트릭으로 정확한 높이 계산.
