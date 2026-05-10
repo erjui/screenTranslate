@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import NaturalLanguage
 import Observation
 import OSLog
 
@@ -160,11 +161,15 @@ final class TranslationCoordinator {
                 try Task.checkCancellation()
                 logger.debug("드래그 번역 성공: \"\(translated)\"")
 
+                // When source is auto, infer the language with NLLanguageRecognizer
+                // so result.sourceLanguage is populated (needed for pinyin display etc.).
+                let detectedSource = effectiveSource ?? Self.detectLanguage(in: text)
+
                 let result = TranslationResult(
                     sourceText: text,
                     translatedText: translated,
                     lowConfidence: false,
-                    sourceLanguage: effectiveSource
+                    sourceLanguage: detectedSource
                 )
                 state = .completed(result)
             } catch is CancellationError {
@@ -195,6 +200,15 @@ final class TranslationCoordinator {
     /// 런타임에 Provider를 교체한다 (설정 변경 시).
     func updateProvider(_ provider: TranslationProvider) {
         self.translationProvider = provider
+    }
+
+    /// Infer the dominant language of `text` for the drag/selection translation path.
+    /// Used only to populate result.sourceLanguage; the translation call itself is unaffected.
+    private static func detectLanguage(in text: String) -> Locale.Language? {
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+        guard let lang = recognizer.dominantLanguage else { return nil }
+        return Locale.Language(identifier: lang.rawValue)
     }
 
     /// OCR 텍스트 전처리: 줄바꿈 병합, CJK 처리, 하이픈 제거, 특수 공백 정리, Unicode 정규화.
