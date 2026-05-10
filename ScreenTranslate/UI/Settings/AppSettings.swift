@@ -251,7 +251,7 @@ final class AppSettings {
     var popupAlwaysShowOriginal: Bool {
         get {
             access(keyPath: \.popupAlwaysShowOriginal)
-            return UserDefaults.standard.object(forKey: "com.screentranslate.popupAlwaysShowOriginal") as? Bool ?? false
+            return UserDefaults.standard.object(forKey: "com.screentranslate.popupAlwaysShowOriginal") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.popupAlwaysShowOriginal) {
