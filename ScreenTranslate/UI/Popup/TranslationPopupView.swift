@@ -61,6 +61,8 @@ struct TranslationPopupView: View {
                     if case .completed = state {
                         Toggle(L10n.showOriginal, isOn: $showingOriginal)
                             .toggleStyle(.checkbox)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                             .onChange(of: showingOriginal) { _, newValue in
                                 onToggleOriginal(newValue)
                             }
@@ -162,33 +164,20 @@ struct TranslationPopupView: View {
                     .foregroundStyle(.orange)
             }
 
-            // 병음 (원문이 중국어일 때, 설정 활성화 시 번역문 위에 표시)
-            if let pinyinText = pinyinIfApplicable(for: result) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.pinyin)
-                        .font(popupFontSmall)
-                        .foregroundStyle(.tertiary)
-                    Text(pinyinText)
-                        .font(popupFontSmall)
-                        .foregroundStyle(.secondary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
+            // Translation — sized to content. Wrapping happens via maxWidth.
+            // The popup window caps overall height (maxTotalHeight) so very long
+            // text is clipped at the popup boundary rather than fighting siblings
+            // for vertical space inside a ScrollView.
+            Text(result.translatedText)
+                .font(popupFont)
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .accessibilityLabel(L10n.translatedText)
+                .accessibilityValue(result.translatedText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
 
-            // 번역문 — 짧은 텍스트는 자연 크기, 긴 텍스트만 스크롤
-            ScrollView {
-                Text(result.translatedText)
-                    .font(popupFont)
-                    .foregroundStyle(.primary)
-                    .textSelection(.enabled)
-                    .accessibilityLabel(L10n.translatedText)
-                    .accessibilityValue(result.translatedText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxHeight: .infinity)
-
-            // 원문 (토글 시)
+            // Original (when toggle is on) — pinyin lives here too
             if showingOriginal {
                 Divider()
 
@@ -206,14 +195,26 @@ struct TranslationPopupView: View {
                         }
                     }
 
-                    ScrollView {
-                        Text(result.sourceText)
-                            .font(popupFont)
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(result.sourceText)
+                        .font(popupFont)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Pinyin annotates the Chinese source — render directly under it
+                    if let pinyinText = pinyinIfApplicable(for: result) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(L10n.pinyin)
+                                .font(popupFontSmall)
+                                .foregroundStyle(.tertiary)
+                            Text(pinyinText)
+                                .font(popupFontSmall)
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
-                    .frame(maxHeight: .infinity)
                 }
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }

@@ -62,15 +62,15 @@ final class TranslationPopupWindow: NSPanel {
     // MARK: - 크기 계산 상수
 
     private let contentPaddingTotal: CGFloat = 32   // 좌우 패딩 16×2
-    private let buttonRowHeight: CGFloat = 28       // 복사/닫기 버튼 행
+    private let buttonRowHeight: CGFloat = 32       // .bordered 버튼 (lineLimit(1) Toggle 가정)
     private let vStackSpacing: CGFloat = 24         // VStack spacing(12+8) + 여유(4)
-    private let contentOverhead: CGFloat = 84       // contentPaddingTotal + buttonRowHeight + vStackSpacing
+    private let contentOverhead: CGFloat = 88       // contentPaddingTotal(32) + buttonRow(32) + spacing(24)
     private let originalTextHeader: CGFloat = 30    // 원문 헤더 + 구분선
     private let pinyinHeader: CGFloat = 22          // 병음 헤더 ("Pinyin" 라벨 + spacing)
     private let maxTranslatedHeight: CGFloat = 300  // 번역문 최대 높이 (fontScale 적용 전)
-    private let maxOriginalHeight: CGFloat = 200    // 원문 최대 높이 (fontScale 적용 전)
+    private let maxOriginalHeight: CGFloat = 220    // 원문 최대 높이 (fontScale 적용 전)
     private let maxPinyinHeight: CGFloat = 120      // 병음 최대 높이 (fontScale 적용 전)
-    private let maxTotalHeight: CGFloat = 600       // 팝업 전체 최대 높이
+    private let maxTotalHeight: CGFloat = 640       // 팝업 전체 최대 높이
 
     /// Wrapper container — NSHostingView와 ResizeGripView를 분리
     private var containerView: NSView?
@@ -363,15 +363,15 @@ final class TranslationPopupWindow: NSPanel {
             let translatedHeight = measureTextHeight(result.translatedText, width: baseWidth)
             var contentHeight = min(translatedHeight, maxTranslatedHeight * fontScale) + contentOverhead
 
-            // 병음 블록(원문이 중국어이고 설정 활성화 시) 추가
-            if let pinyinText = pinyinTextIfApplicable(for: result) {
-                let pinyinHeight = measureTextHeight(pinyinText, width: baseWidth)
-                contentHeight += min(pinyinHeight, maxPinyinHeight * fontScale) + pinyinHeader
-            }
-
             if showingOriginal {
                 let sourceHeight = measureTextHeight(result.sourceText, width: baseWidth)
                 contentHeight += min(sourceHeight, maxOriginalHeight * fontScale) + originalTextHeader
+
+                // Pinyin now lives inside the Original section — only counts when shown.
+                if let pinyinText = pinyinTextIfApplicable(for: result) {
+                    let pinyinHeight = measureTextHeight(pinyinText, width: baseWidth)
+                    contentHeight += min(pinyinHeight, maxPinyinHeight * fontScale) + pinyinHeader
+                }
             }
 
             let height = min(max(contentHeight, minResizeHeight * fontScale), maxTotalHeight)
