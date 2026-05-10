@@ -246,6 +246,20 @@ final class AppSettings {
         }
     }
 
+    // MARK: - Popup: always show original
+
+    var popupAlwaysShowOriginal: Bool {
+        get {
+            access(keyPath: \.popupAlwaysShowOriginal)
+            return UserDefaults.standard.object(forKey: "com.screentranslate.popupAlwaysShowOriginal") as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.popupAlwaysShowOriginal) {
+                UserDefaults.standard.set(newValue, forKey: "com.screentranslate.popupAlwaysShowOriginal")
+            }
+        }
+    }
+
     // MARK: - Advanced
 
     var ocrTextPreprocessing: Bool {

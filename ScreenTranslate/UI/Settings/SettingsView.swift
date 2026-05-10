@@ -574,6 +574,15 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                Toggle(isOn: $settings.popupAlwaysShowOriginal) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.popupAlwaysShowOriginal)
+                        Text(L10n.popupAlwaysShowOriginalDesc)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .formStyle(.grouped)

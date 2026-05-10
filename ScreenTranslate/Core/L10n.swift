@@ -180,6 +180,12 @@ nonisolated enum L10n {
           ko: "원문이 중국어일 때 번역문 위에 한어병음을 표시합니다.")
     }
 
+    static var popupAlwaysShowOriginal: String { s("Always Show Original", ko: "원문 항상 보기") }
+    static var popupAlwaysShowOriginalDesc: String {
+        s("Open the popup with the original text already visible below the translation.",
+          ko: "팝업이 열릴 때 번역문 아래에 원문을 기본으로 표시합니다.")
+    }
+
     static func languagePackMessage(name: String) -> String {
         s("\(name) language pack is not installed.\nWould you like to download it now?",
           ko: "\(name) 언어팩이 설치되지 않았습니다.\n지금 다운로드할까요?")

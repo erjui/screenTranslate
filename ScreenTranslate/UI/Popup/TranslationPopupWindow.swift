@@ -41,6 +41,10 @@ final class TranslationPopupWindow: NSPanel {
     /// 자동 복사 여부 — 팝업에 전달
     var autoCopied = false
 
+    /// Key event monitor — handles Cmd+C / Cmd+Shift+C reliably,
+    /// bypassing SwiftUI .keyboardShortcut which can misfire for shifted variants.
+    private var keyMonitor: Any?
+
     /// 사용자가 팝업을 드래그했는지 여부 — 원문 토글 시 위치 결정에 사용
     private var userDidDrag = false
     private var isUpdatingPosition = false
@@ -79,7 +83,7 @@ final class TranslationPopupWindow: NSPanel {
     /// 최초 표시용 — 윈도우 위치를 설정하고 표시한다.
     func show(state: TranslationCoordinator.State, near selectionRect: CGRect, on screen: NSScreen? = nil) {
         currentState = state
-        isShowingOriginal = false
+        isShowingOriginal = AppSettings.shared.popupAlwaysShowOriginal
         userDidDrag = false
         userDidResize = false
         autoCopied = false
@@ -87,7 +91,7 @@ final class TranslationPopupWindow: NSPanel {
         lastScreen = screen
 
         let popupView = makePopupView(state: state)
-        let size = calculateSize(for: state, showingOriginal: false)
+        let size = calculateSize(for: state, showingOriginal: isShowingOriginal)
 
         if let existing = hostingView {
             existing.rootView = popupView
@@ -113,7 +117,11 @@ final class TranslationPopupWindow: NSPanel {
         setFrame(NSRect(origin: origin, size: size), display: true)
         isUpdatingPosition = false
         makeKeyAndOrderFront(nil)
+        // Menu-bar app is inactive by default — activate so the local key monitor
+        // receives key events for Cmd+C / Cmd+Shift+C.
+        NSApp.activate()
         installResizeGrip()
+        installKeyMonitor()
     }
 
     /// H1: 상태만 업데이트 — NSHostingView.rootView 교체로 깜빡임 없이 갱신
@@ -157,6 +165,7 @@ final class TranslationPopupWindow: NSPanel {
     private func makePopupView(state: TranslationCoordinator.State) -> TranslationPopupView {
         TranslationPopupView(
             state: state,
+            initialShowingOriginal: isShowingOriginal,
             onCopy: { text in
                 Clipboard.copy(text)
             },
@@ -171,6 +180,49 @@ final class TranslationPopupWindow: NSPanel {
                 AppOrchestrator.shared.showSettings()
             }
         )
+    }
+
+    // MARK: - Key event monitor
+
+    /// Install a local key monitor for Cmd+C and Cmd+Shift+C. SwiftUI's
+    /// .keyboardShortcut("c", [.command, .shift]) is unreliable in this kind of
+    /// borderless NSPanel, so we route the keystrokes here instead.
+    private func installKeyMonitor() {
+        removeKeyMonitor()
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.isVisible else { return event }
+
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let hasCmd = flags.contains(.command)
+            let hasShift = flags.contains(.shift)
+            let hasOption = flags.contains(.option)
+            let hasControl = flags.contains(.control)
+
+            // keyCode 8 = "C" — input-method independent.
+            guard event.keyCode == 8, hasCmd, !hasOption, !hasControl else {
+                return event
+            }
+
+            // Only act on completed translations — nothing to copy otherwise.
+            guard case .completed(let result) = self.currentState else {
+                return event
+            }
+
+            if hasShift {
+                guard !result.sourceText.isEmpty else { return event }
+                Clipboard.copy(result.sourceText)
+            } else {
+                Clipboard.copy(result.translatedText)
+            }
+            return nil  // consume so the host app doesn't also receive Cmd+C
+        }
+    }
+
+    private func removeKeyMonitor() {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
     }
 
     /// 원문 보기 토글 시 윈도우 크기를 동적으로 재조정한다.
@@ -406,6 +458,7 @@ final class TranslationPopupWindow: NSPanel {
     // MARK: - 앱 activate 시 보조 윈도우 보호
 
     override func close() {
+        removeKeyMonitor()
         super.close()
         // super.close() 후 macOS가 설정/About 등을 key window로 선택하여
         // 앞으로 올라올 수 있다. 다음 run loop에서 orderBack하여 되돌린다.

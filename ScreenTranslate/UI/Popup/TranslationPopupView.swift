@@ -17,7 +17,25 @@ struct TranslationPopupView: View {
 
     @State private var didCopy = false
     @State private var didCopyOriginal = false
-    @State private var showingOriginal = false
+    @State private var showingOriginal: Bool
+
+    init(
+        state: TranslationCoordinator.State,
+        initialShowingOriginal: Bool = false,
+        onCopy: @escaping (String) -> Void,
+        onClose: @escaping () -> Void,
+        onToggleOriginal: @escaping (Bool) -> Void,
+        autoCopied: Bool,
+        onOpenSettings: (() -> Void)? = nil
+    ) {
+        self.state = state
+        self.onCopy = onCopy
+        self.onClose = onClose
+        self.onToggleOriginal = onToggleOriginal
+        self.autoCopied = autoCopied
+        self.onOpenSettings = onOpenSettings
+        _showingOriginal = State(initialValue: initialShowingOriginal)
+    }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
