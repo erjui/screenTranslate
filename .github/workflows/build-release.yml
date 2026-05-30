@@ -1,0 +1,75 @@
+name: Build and Release (Unsigned)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode.app
+
+    - name: Extract version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Cache SPM packages
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: ${{ runner.os }}-spm-${{ hashFiles('ScreenTranslate.xcodeproj/project.pbxproj') }}
+        restore-keys: ${{ runner.os }}-spm-
+
+    - name: Build archive (unsigned)
+      run: |
+        xcodebuild archive \
+          -project ScreenTranslate.xcodeproj \
+          -scheme ScreenTranslate \
+          -configuration Release \
+          -destination 'generic/platform=macOS' \
+          -archivePath $RUNNER_TEMP/ScreenTranslate.xcarchive \
+          MARKETING_VERSION=${{ steps.version.outputs.VERSION }} \
+          CURRENT_PROJECT_VERSION=${{ steps.version.outputs.VERSION }} \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Package as ZIP
+      id: package
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        APP="$RUNNER_TEMP/ScreenTranslate.xcarchive/Products/Applications/ScreenTranslate.app"
+        ZIP="$RUNNER_TEMP/ScreenTranslate-${VERSION}-unsigned.zip"
+        ditto -c -k --keepParent "$APP" "$ZIP"
+        echo "zip=$ZIP" >> $GITHUB_OUTPUT
+
+    - name: Extract release notes
+      id: notes
+      run: |
+        NOTES=$(./scripts/extract_changelog.sh "${{ steps.version.outputs.VERSION }}" 2>/dev/null || echo "")
+        echo "NOTES<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.package.outputs.zip }}
+        body: |
+          ## ScreenTranslate v${{ steps.version.outputs.VERSION }}
+
+          ${{ steps.notes.outputs.NOTES }}
+
+          ---
+          > **Unsigned build** — on first launch run `xattr -cr ScreenTranslate.app` to bypass Gatekeeper, or right-click → Open.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-05-30
+
+### Highlights
+
+- 🆕 Chinese pinyin — shows pinyin romanization below Chinese translations in popup, Quick Translate, and History
+- 🆕 Copy Original — copy source text with `Cmd+Shift+C` (popup) or `Cmd+Opt+C` (Quick Translate)
+- 🆕 Always Show Original — popup shows source text alongside translation by default
+
+### Added
+
+- Chinese pinyin display in translation popup, Quick Translate panel, and History expanded rows
+- Pinyin toggle under Settings → Advanced → Other
+- Copy Original button in translation popup (`Cmd+Shift+C`)
+- Copy Original action in Quick Translate (`Cmd+Opt+C` + icon button)
+- Always Show Original setting in popup (defaults to enabled)
+
+### Fixed
+
+- Source language detection in Vision OCR results
+- Source language detection on drag/select translate
+- Popup layout no longer clips translation or source text
+
 ## [1.5.2] - 2026-03-31
 
 ### Highlights
